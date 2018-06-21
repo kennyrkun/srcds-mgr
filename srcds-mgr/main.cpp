@@ -56,7 +56,7 @@ int veriifySteamCMD()
 					Zip zip;
 					zip.archivePath = GBL::PATHS::STEAMCMD;
 					zip.archiveName = "steamcmd.zip";
-					zip.extractFileFromArchive("steamcmd.exe");
+					zip.extractFileFromArchive("steamcmd.exe", zip.archivePath);
 
 					fs::remove(GBL::PATHS::STEAMCMD + "steamcmd.zip");
 				}

@@ -32,26 +32,13 @@ public:
 	int removeDirectoryFromArchive(std::string name, bool removeIfNotEmpty = false);
 
 	// Compresses the archive. Blocking unless run in another thread.
-	int compressArchive();
-
-	// Compresses the archive one step at a time.
-	// Developer must do this for the entire size of the file, probably in a for loop.
-	int compressArchiveSteps();
-	// Returns the compression step number.
-	// Useful for progress bars and such.
-	int getCompressionProgress();
+	int compressArchive(std::string filename);
 
 	// Decompresses the archive. Blocking unless run in another thread.
-	int decompressArchive();
+	int decompressArchive(std::string filename);
 
-	// Decompress the archive in steps.
-	// Developer must do this for the entire size of the file, probably in a for loop.
-	int decompressArchiveSteps();
-	// Returns the decompression step.
-	// Useful for progress bars and such.
-	int getDecompressionSteps();
-
-	int extractFileFromArchive(std::string filename);
+	// Extracts a specific file from the archive.
+	int extractFileFromArchive(std::string filename, std::string destination);
 };
 
 #endif // !ZIP_HPP

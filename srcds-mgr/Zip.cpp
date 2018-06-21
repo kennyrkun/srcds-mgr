@@ -32,55 +32,35 @@ Zip::~Zip()
 
 int Zip::addFileToArchive(std::string filename)
 {
-	return 0;
+	// TODO: see example2.c
 }
 
 int Zip::removeFileFromArchive(std::string filename)
 {
-	return 0;
+	// TODO: see example2.c
 }
 
 int Zip::addDirectoryToArchive(std::string name)
 {
-	return 0;
+	// TODO: see example2.c
 }
 
 int Zip::removeDirectoryFromArchive(std::string name, bool removeIfNotEmpty)
 {
-	return 0;
+	// TODO: see example2.c
 }
 
-int Zip::compressArchive()
+int Zip::compressArchive(std::string filename)
 {
 	return 0;
 }
 
-int Zip::compressArchiveSteps()
+int Zip::decompressArchive(std::string filename)
 {
 	return 0;
 }
 
-int Zip::getCompressionProgress()
-{
-	return 0;
-}
-
-int Zip::decompressArchive()
-{
-	return 0;
-}
-
-int Zip::decompressArchiveSteps()
-{
-	return 0;
-}
-
-int Zip::getDecompressionSteps()
-{
-	return 0;
-}
-
-int Zip::extractFileFromArchive(std::string filename)
+int Zip::extractFileFromArchive(std::string filename, std::string destination)
 {
 	std::cout << "extracting " << filename << " from " << archivePath + archiveName << std::endl;
 
@@ -112,7 +92,7 @@ int Zip::extractFileFromArchive(std::string filename)
 		// TODO: find a better way to do this
 		if (filename == file_stat.m_filename)
 		{
-			std::string temp_filename = archivePath + filename;
+			std::string temp_filename = destination + filename;
 
 			if (!mz_zip_reader_extract_to_file(&zip_archive, i, temp_filename.c_str(), 0))
 			{
