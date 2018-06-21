@@ -127,7 +127,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="miniz.c" />
+    <ClCompile Include="Zip.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Globals.hpp" />
+    <ClInclude Include="miniz.h" />
+    <ClInclude Include="Zip.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

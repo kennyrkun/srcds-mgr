@@ -1,11 +1,100 @@
+
+#include "Globals.hpp"
+#include "Zip.hpp"
+
 #include <SFUI/Layouts/Menu.hpp>
 #include <SFUI/Theme.hpp>
 #include <SFUI/SFUI.hpp>
+#include <SFML\Network\Http.hpp>
 
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 
-int main()
+namespace fs = std::experimental::filesystem;
+
+int veriifySteamCMD()
 {
+	std::cout << "verifying SteamCMD" << std::endl;
+
+	if (!fs::exists(GBL::PATHS::STEAMCMD))
+	{
+		fs::create_directories(GBL::PATHS::STEAMCMD);
+		std::cout << "creating steamcmd directory" << std::endl;
+	}
+
+	if (!fs::exists(GBL::PATHS::STEAMCMD + "steamcmd.exe"))
+	{
+		std::cout << "getting steamcmd" << std::endl;
+
+		// if steamcmd.exe is missing, clear all files from this folder and try again
+		for (auto& p : fs::directory_iterator(GBL::PATHS::STEAMCMD))
+			fs::remove(p);
+
+		sf::Http http("http://steamcdn-a.akamaihd.net");
+		sf::Http::Request request("client/installer/steamcmd.zip");
+
+		std::cout << "connecting to http://steamcdn-a.akamaihd.net" << std::endl;
+		sf::Http::Response response = http.sendRequest(request);
+
+		if (response.getStatus() == sf::Http::Response::Status::Ok)
+		{
+			std::cout << "saving steamcmd.zip" << std::endl;
+
+			std::ofstream saveSteamCMD(GBL::PATHS::STEAMCMD + "steamcmd.zip", std::ios::binary);
+
+			if (saveSteamCMD.is_open())
+			{
+				saveSteamCMD << response.getBody();
+
+				saveSteamCMD.close();
+
+				if (!saveSteamCMD.good())
+					std::cerr << "failed to write to steamcmd.zip" << std::endl;
+				else
+				{
+					Zip zip;
+					zip.archivePath = GBL::PATHS::STEAMCMD;
+					zip.archiveName = "steamcmd.zip";
+					zip.extractFileFromArchive("steamcmd.exe");
+
+					fs::remove(GBL::PATHS::STEAMCMD + "steamcmd.zip");
+				}
+			}
+			else
+			{
+				std::cerr << "failed to open write stream" << std::endl;
+			}
+		}
+	}
+}
+
+int initialise()
+{
+	std::cout << "initliasing" << std::endl;
+
+	veriifySteamCMD();
+
+	std::cout << "ready" << std::endl;
+
+	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	for (size_t i = 0; i < argc; i++)
+	{
+		if (std::string(argv[i]) == "-nogui")
+		{
+			std::cerr << "No command line support yet, however it is planned\nhttps://github.com/kennyrkun/srcds-mgr/projects/1#card-10731990" << std::endl;
+		}
+	}
+	std::cout << std::endl;
+
+	initialise();
+
+	// TODO: srcdsmgr class
+
 	enum Callback
 	{
 		C_ITEM_NAME,
@@ -19,13 +108,13 @@ int main()
 	};
 
 	// Create the main window
-	sf::RenderWindow app(sf::VideoMode(400, 400), "Item Upload v1");
+	sf::RenderWindow window(sf::VideoMode(400, 400), "SRCDS Manager");
 
-	SFUI::Menu menu(app);
+	SFUI::Menu menu(window);
 	menu.setPosition(sf::Vector2f(10, 10));
 
-	SFUI::Theme::loadFont("resources/interface/tahoma.ttf");
-	SFUI::Theme::loadTexture("resources/interface/texture_square.png");
+	SFUI::Theme::loadFont(GBL::PATHS::INTERFACE + "tahoma.ttf");
+	SFUI::Theme::loadTexture(GBL::PATHS::INTERFACE + "texture_square.png");
 	SFUI::Theme::fontSize = 11;
 	SFUI::Theme::click.textColor = SFUI::Theme::hexToRgb("#191B18");
 	SFUI::Theme::click.textColorHover = SFUI::Theme::hexToRgb("#191B18");
@@ -41,10 +130,6 @@ int main()
 
 	form->addLabel("Input item info");
 
-	SFUI::InputBox* textureName = new SFUI::InputBox();
-	textureName->setText("resources/texture_");
-	form->addRow("Texture", textureName, C_ITEM_NAME);
-
 	SFUI::InputBox* itemName = new SFUI::InputBox();
 	form->addRow("Item Name", itemName, C_ITEM_NAME);
 
@@ -59,34 +144,31 @@ int main()
 	form->addRow("Item Name", itemIcon, C_ITEM_ICON);
 
 	form->addButton("Submit", Submit);
+	form->addButton("Quit", Quit);
 
-	while (app.isOpen())
+	while (window.isOpen())
 	{
 		sf::Event event;
-		while (app.pollEvent(event))
+		while (window.pollEvent(event))
 		{
 			int id = menu.onEvent(event);
 			switch (id)
 			{
 			case Submit:
-				std::cout << "doing the do" << std::endl;
-
-				SFUI::Theme::loadTexture(textureName->getText());
-
 				break;
 			case Quit:
-				app.close();
+				window.close();
 			}
 
 			if (event.type == sf::Event::Closed)
-				app.close();
+				window.close();
 		}
 
-		app.clear(SFUI::Theme::windowBgColor);
+		window.clear(SFUI::Theme::windowBgColor);
 
-		app.draw(menu);
+		window.draw(menu);
 
-		app.display();
+		window.display();
 	}
 
 	return EXIT_SUCCESS;
