@@ -8,6 +8,9 @@
     <Filter Include="Source Files\Zip">
       <UniqueIdentifier>{6bbb1b50-61b4-4904-b2f3-8175afbbfaac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ExternalApps">
+      <UniqueIdentifier>{2d2483de-41cf-4e78-80e4-67b9a60c1cf1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -21,6 +24,9 @@
     </ClCompile>
     <ClCompile Include="miniz.c">
       <Filter>Source Files\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="interprocess.cpp">
+      <Filter>Source Files\ExternalApps</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

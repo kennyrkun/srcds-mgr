@@ -3,6 +3,9 @@
 
 #include <string>
 
+#define SUCCESS 1
+#define FAILURE 0
+
 namespace GBL
 {
 	namespace PATHS

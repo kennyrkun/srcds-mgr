@@ -1,6 +1,3 @@
-# Custom Ignores
-/SFUI
-
 # Prerequisites
 *.d
 
@@ -365,3 +362,5 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
 /SFML
+/SFUI
+/srcds-mgr/resources/

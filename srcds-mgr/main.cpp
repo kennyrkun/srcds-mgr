@@ -1,4 +1,3 @@
-
 #include "Globals.hpp"
 #include "Zip.hpp"
 
@@ -10,6 +9,10 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+
+#ifndef _WIN32
+#error This program is not written to support non-Windows platforms! (yet)
+#endif
 
 namespace fs = std::experimental::filesystem;
 
@@ -27,7 +30,7 @@ int veriifySteamCMD()
 	{
 		std::cout << "getting steamcmd" << std::endl;
 
-		// if steamcmd.exe is missing, clear all files from this folder and try again
+		// if steamcmd.exe is missing, assume something horrible went wrong and reinstall
 		for (auto& p : fs::directory_iterator(GBL::PATHS::STEAMCMD))
 			fs::remove(p);
 
@@ -50,38 +53,113 @@ int veriifySteamCMD()
 				saveSteamCMD.close();
 
 				if (!saveSteamCMD.good())
+				{
 					std::cerr << "failed to write to steamcmd.zip" << std::endl;
+
+					return FAILURE;
+				}
 				else
 				{
-					Zip zip;
-					zip.archivePath = GBL::PATHS::STEAMCMD;
-					zip.archiveName = "steamcmd.zip";
-					zip.extractFileFromArchive("steamcmd.exe", zip.archivePath);
+					std::cout << "unzipping steamcmd" << std::endl;
 
-					fs::remove(GBL::PATHS::STEAMCMD + "steamcmd.zip");
+					Zip zip;
+
+					zip.archivePath = GBL::PATHS::STEAMCMD;
+
+					if (!zip.extractFileFromArchive("steamcmd.zip", "steamcmd.exe"))
+					{
+						std::cerr << "failed to extract steamcmd" << std::endl;
+						return FAILURE;
+					}
+					else
+					{
+						// we're done with you
+						fs::remove(GBL::PATHS::STEAMCMD + "steamcmd.zip");
+
+						// use SteamCMD
+					}
 				}
 			}
 			else
 			{
 				std::cerr << "failed to open write stream" << std::endl;
+
+				return FAILURE;
 			}
 		}
+		else
+		{
+			std::cerr << "failed to connect to http://steamcdn-a.akamaihd.net (" << response.getStatus() << ")" << std::endl;
+
+			return FAILURE;
+		}
 	}
+
+	return SUCCESS;
 }
 
 int initialise()
 {
 	std::cout << "initliasing" << std::endl;
 
-	veriifySteamCMD();
+	if (veriifySteamCMD())
+	{
+		std::cout << "SteamCMD verified :D" << std::endl;
+	}
+	else
+	{
+		std::cerr << "Failed to verify SteamCMD :'(" << std::endl;
+
+		// TOOD: possibly don't fail because user might already
+		// have servers and such installed. in this case, we
+		// should just disable features that use SteamCMD
+		// and ask the user if they want to attempt to gather it.
+		return FAILURE; // fail because SteamCMD is necessary
+	}
 
 	std::cout << "ready" << std::endl;
 
-	return 0;
+	return SUCCESS;
 }
 
-int main(int argc, char* argv[])
+// Only windows.
+// TODO: perhaps use an std::map with an std::pair of <string> and <int> for id and name
+// TODO: probably at some point it'd be better to acces the streamdb and find servers
+enum DedicatedServers
 {
+	AlienSwarm = 635,
+	AlienSwarmReactiveDrop = 582400,
+	BlackMesaDeathMatch = 346680,
+	CounterStrike16 = 90,
+	CounterStrikeGlobalOffensive = 740,
+	CounterStrikeConditionZero = 90, // Is this really the same as CounterStrike16?
+	CounterStrikeSource = 232330,
+	DayOfDefeat = 90, // Is this really the same as CounterStrike16?
+	DayOfDefeatSource = 232290,
+	DeathmatchClassic = 90, // Is this really the same as CounterStrike16?
+	GarrysMod = 4020,
+	HalfLife2Deathmatch = 232370,
+	HalfLifeDeathmatchSource = 255470,
+	HalfLife = 90, // Is this really the same as CounterStrike16?
+	HalfLifeOpposingForce = 90, // Is this really the same as CounterStrike16?
+	Left4Dead = 222840,
+	Left4Dead2 = 222860,
+	NoMoreRoomInHell = 317670,
+	SvenCoOp = 276060,
+	Ricochet = 90, // Is this really the same as CounterStrike16?
+	Source = 205,
+	SourceSDKBase2013 = 244310,
+	SourceSDKBase2006MP = 205, // Is this really the same as Source?
+	Source2007 = 310,
+	TeamFortress2 = 232250,
+	TeamFortressClassic = 90, // Is this really the same as CounterStrike16?
+	TheShip = 2403,
+};
+
+int m2ain(int argc, char* argv[])
+{
+	std::cout << "Running with " << argc << " arguments." << std::endl;
+
 	for (size_t i = 0; i < argc; i++)
 	{
 		if (std::string(argv[i]) == "-nogui")
@@ -91,18 +169,18 @@ int main(int argc, char* argv[])
 	}
 	std::cout << std::endl;
 
-	initialise();
+	if (!initialise())
+	{
+		std::cerr << "Failed to initalise, aborting." << std::endl;
+
+		abort();
+	}
 
 	// TODO: srcdsmgr class
 
 	enum Callback
 	{
-		C_ITEM_NAME,
-		C_ITEM_DESCRIPTION,
-		C_ITEM_VERSION,
-		C_ITEM_RELEASE,
-		C_ITEM_FILES,
-		C_ITEM_ICON,
+		C_APP_ID,
 		Submit,
 		Quit
 	};
@@ -115,7 +193,7 @@ int main(int argc, char* argv[])
 
 	SFUI::Theme::loadFont(GBL::PATHS::INTERFACE + "tahoma.ttf");
 	SFUI::Theme::loadTexture(GBL::PATHS::INTERFACE + "texture_square.png");
-	SFUI::Theme::fontSize = 11;
+	SFUI::Theme::textCharacterSize = 11;
 	SFUI::Theme::click.textColor = SFUI::Theme::hexToRgb("#191B18");
 	SFUI::Theme::click.textColorHover = SFUI::Theme::hexToRgb("#191B18");
 	SFUI::Theme::click.textColorFocus = SFUI::Theme::hexToRgb("#000");
@@ -128,20 +206,10 @@ int main(int argc, char* argv[])
 	SFUI::HorizontalBoxLayout* hbox = menu.addHorizontalBoxLayout();
 	SFUI::FormLayout* form = hbox->addFormLayout();
 
-	form->addLabel("Input item info");
+	form->addLabel("New Server");
 
-	SFUI::InputBox* itemName = new SFUI::InputBox();
-	form->addRow("Item Name", itemName, C_ITEM_NAME);
-
-	SFUI::InputBox* itemDescription = new SFUI::InputBox();
-	form->addRow("Item Description", itemDescription, C_ITEM_DESCRIPTION);
-
-	SFUI::InputBox* itemVersion = new SFUI::InputBox();
-	form->addRow("Item Name", itemVersion, C_ITEM_VERSION);
-
-	SFUI::InputBox* itemIcon = new SFUI::InputBox();
-	itemIcon->setText("./files/icon.png");
-	form->addRow("Item Name", itemIcon, C_ITEM_ICON);
+	SFUI::InputBox* AppID = new SFUI::InputBox();
+	form->addRow("AppID", AppID, C_APP_ID);
 
 	form->addButton("Submit", Submit);
 	form->addButton("Quit", Quit);

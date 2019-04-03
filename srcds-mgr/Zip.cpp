@@ -52,11 +52,15 @@ int Zip::removeDirectoryFromArchive(std::string name, bool removeIfNotEmpty)
 
 int Zip::compressArchive(std::string filename)
 {
+	// TODO: this
+
 	return 0;
 }
 
 int Zip::decompressArchive(std::string filename)
 {
+	// TODO: this
+	
 	return 0;
 }
 
